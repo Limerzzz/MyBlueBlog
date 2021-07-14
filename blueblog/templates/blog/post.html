@@ -61,10 +61,13 @@
                 <!--? 显示有多少评论 -->
                 {{ pagination.total }} Comments
                 <small>
+                    <!--? 这里#comment 跳回为id = comment的位置 -->
+                    <!--? 在这里的作用是显示最新的评论 -->
                     <a href="{{ url_for('.show_post', post_id = post.id, page = pagination.pages or 1)}}#comment">
                         latest
                     </a>
                 </small>
+                <!--? 验证是否可以被评论 -->
                 {% if current_user.is_authenticated %}
                 <form class="float-right" method="post"
                     action="{{url_for('admin.set_comment', post_id = post.id, next = request.full_path)}}">
@@ -102,6 +105,7 @@
                             {% endif %}
                         </h5>
                         <!--? data-* 嵌入自定义数据,用于js等代码读取 -->
+                        <!-- ! 显示评论的时间 -->
                         <small data-toggle="tooltip" data-placement="top" data-delay="500"
                             data-timestamp="{{ comment.timestamp.strftime('%Y-%m-%dT%H:%M:%M:%SZ') }}">
                             {{ moment(comment.timestamp).fromNow() }}
@@ -114,9 +118,10 @@
                     {% endif%}
                     <p class="mb-1">{{ comment.body }}</p>
                     <div class="float-right">
-                        <a class="btn btn-light btn-sm" href=" url_for('.reply_comment', comment_id = comment,id)">
+                        <a class="btn btn-light btn-sm" href=" url_for('.reply_comment', comment_id = comment.id)"> 
                             {% if current_user.is_authenticated %}
                             <a class="btn btn-light btn-sm" href="mailto:{{ comment.email }}">Email</a>
+                            <!-- ! 删除评论 -->
                             <form class="inline" method="POST"
                                 action="{{ url_for('admin.delete_comment', comment_id = comment.id, next=request.full_path)}}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -140,6 +145,7 @@
         {% if comments %}
         {{ render_pagination(pagination, fragment='#comments')}}
         {% endif %}
+        <!-- 仅在点击评论回复后才会出现 -->
         {% if request.args.get('reply') %}
         <div class="alert alert-dark">
             Reply to <strong>{{ request.args.get('author') }}</strong>
