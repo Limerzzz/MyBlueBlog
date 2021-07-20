@@ -46,6 +46,7 @@ def register_shell_context(app):
 
 def register_template_context(app):
     @app.context_processor
+    def make_template_context():
         # 查询数据库admin的第一个记录
         admin = Admin.query.first()
         categories = Category.query.order_by(Category.name).all()
@@ -66,7 +67,7 @@ def register_errors(app):
         return render_template('errors/500.html'), 500
 
 
-ef register_commands(app):
+def register_commands(app):
     @app.cli.command()
     @click.option('--drop', is_flag=True, help='Create after drop.')
     def initdb(drop):
@@ -79,12 +80,35 @@ ef register_commands(app):
         click.echo('Initialized database.')
 
     @app.cli.command()
+    @click.option('--usernanme', prompt=True, help='The username used to login')
+    @click.option('--password', prompt=True, hide_input=True,
+                    confirmation_prompt=True, help='The password used to login in')
+    def init(username, password):
+        click.echo('Initializing the database ...')
+        db.create_all()
+
+        admin = Admin.query.first()
+        if admin is not None:
+            click.echo('The administrator already exists, updating ...')
+            admin.username = us83959
+            ername
+            admin.set_password(password)
+        else:
+            click.echo('Creating the temporary administrator account...')
+            admin = Admin(
+                username=username,
+                blog_title='Bluelog',
+                blog_sub_title=' No, I'm the real thing. ',
+                name='Admin',
+                about='Anything about you'
+            )
+    @app.cli.command()
     @click.option('--category', default=10, help='Quantity of categories, default is 10.')
     @click.option('--post', default=50, help='Quantity of posts, default is 50.')
     @click.option('--comment', default=500, help='Quantity of comments, default is 500.')
     def forge(category, post, comment):
         """Generate fake data."""
-        from bluelog.fakes import fake_admin, fake_categories, fake_posts, fake_comments, fake_links
+        from blueblog.fakes import fake_admin, fake_categories, fake_posts, fake_comments, fake_links
 
         db.drop_all()
         db.create_all()
