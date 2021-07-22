@@ -75,3 +75,18 @@ def show_post(post_id):
             send_new_comment_email(post)  # send notification email to admin
         return redirect(url_for('.show_post', post_id=post_id))
     return render_template('blog/post.html', post=post, pagination=pagination, form=form, comments=comments)
+
+    @blog_bp.route('/reply/comment/<int:comment_id>')
+    def reply_comment(comment_id):
+        comment = Comment.query.get_or_404(comment_id)
+        if not comment.post.can_comment:
+            flash('Comment is disabled.', 'warning')
+            return redirect(url_for('.show_post', post_id = comment.post_id, reply = comment_id, author = comment.author) + '#comment-form')
+    
+    @blog_bp.route('/change-theme/<theme_name>')
+    def change_theme(theme_name):
+        if theme_name not in current_app.config['BLUELOG_THEMES'].keys():
+            abort(404)
+        response  = make_response(redirect_back())
+        response.set_cookie('theme', theme_name, max_age=30*24*60*60)
+        return response

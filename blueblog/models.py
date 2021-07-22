@@ -1,6 +1,10 @@
 
 from datetime import datetime
 # 使用拓展列表说明拓展内容
+
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash,check_password_hash
+
 from blueblog.extensions import db
 #! 注意 sqlchemy 不可以不全相关的内容.
 
@@ -13,6 +17,13 @@ class Admin(db.Model):
     blog_sub_title = db.Column(db.String(100))
     name = db.Column(db.String(30))
     about = db.Column(db.Text)
+
+    # 生成password的hash值
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    # 检查password_hash是否有效.
+    def vaildate_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
