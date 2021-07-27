@@ -31,8 +31,7 @@ def settings():
 
 @admin_bp.route('/post/manage')
 def manage_post():
-    form = PostForm()
-    # 如果 request对象没有相应的args的话,默认值为 1 
+    form = PostForm()    # 如果 request对象没有相应的args的话,默认值为 1 
     page = request.args.get('page', 1, type = int) 
     per_page = current_app.config['BLUELOG_POST_PER_PAGE']
     pagination = Post.query.order_by(Post.timestamp.desc()).paginate(page, per_page = per_page)
@@ -65,6 +64,11 @@ def edit_post(post_id):
     form.name.data = post.name
     form.author.data = post.author
     return render_template('admin/edit_post.html', form=form)
+@admin_bp.route('/post/<int:post_id>/delete', methods=['POST'])
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    post.delete()
+    return render_template('admin/manage_post.html')
 
 @admin_bp.route('/category/manage')
 def manage_category():
@@ -96,9 +100,18 @@ def edit_category(category_id):
         db.session.commit()
     form.name.data = category.name
     return render_template('admin/edit_category.html', form=form)
+@admin_bp.route('/category/<int:category_id>/delete', methods=['POST'])
+def delete_category(category_id):
+    if category_id is 1:
+        pass
+        # flash('You can't delete default category ', 'warning')
+    category = Category.query.get_or_404(category_id)
+    category.delete()
+    return render_template('admin/manage_category.html')
+
+
 @admin_bp.route('/link/manage')
 def manage_link():
-    form = LinkForm()
     # 如果 request对象没有相应的args的话,默认值为 1 
     page = request.args.get('page', 1, type = int) 
     per_page = current_app.config['BLUELOG_link_PER_PAGE']
@@ -129,3 +142,18 @@ def edit_link(link_id):
     form.name.data = link.name
     form.url.data = link.url
     return render_template('admin/edit_link.html', form=form)
+@admin_bp.route('/link/<int:link_id>/delete', methods=['POST'])
+def delete_link(link_id):   
+    link = Link.query.get_or_404(link_id)
+    link.delete()
+    return render_template('admin/manage_link.html')    
+
+
+@admin_bp.route('/comment/manege')
+def manege_comment():   
+    # 如果 request对象没有相应的args的话,默认值为 1 
+    page = request.args.get('page', 1, type = int) 
+    per_page = current_app.config['BLUELOG_POST_PER_PAGE']
+    pagination = Comment.query.order_by(Post.timestamp.desc()).paginate(page, per_page = per_page)
+    comments = pagination.items
+    return render_template('admin/manage_comment.html',pagination = pagination, comments=comments)
