@@ -107,8 +107,8 @@ def register_commands(app):
             admin = Admin(
                 username=username,
                 blog_title='Bluelog',
-                blog_sub_title='No, I'm the real thing.',
-                name='Admin',
+                blog_sub_title='No, I'm the real thing.' ,
+                name='Admin' ,
                 about='Anything about you'
             )
     @app.cli.command()

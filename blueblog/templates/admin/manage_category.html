@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title%} Manage Category {% endblock %}
+{% block content %}
+    <div class="page-header">
+        <h1>Category
+            <small class="text-muted">{{ pagination.total }}</small>
+            <span class="float-right"><a class="btn btn-primary btn-sm"
+                                     href="{{ url_for('.new_category') }}">New Category</a></span>
+        </h1>
+    </div>
+    {% if categories %}
+    <!-- 使用一下格式可以生成一个表格 -->
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>No.</th>
+            <th>Name</th>
+            <th>Posts</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        {% for c in categories %}
+        <tr>
+            <td>{{ loop.index + ((page - 1) * config.BLUELOG_MANAGE_POST_PER_PAGE) }}</td>
+            <td><a href="{{ url_for('blog.show_category', category_id=c.id) }}">{{ c.name }}</a></td>
+            <td>{{ c.posts.total }}</td>
+            {% if c.id != 1%}
+            <td>
+                <a class="btn btn-info btn-sm" href="{{ url_for('.edit_category', category_id=category.id) }}">Edit</a>
+                <form class="inline" method="post"
+                      action="{{ url_for('.delete_post', category_id=c.id, next=request.full_path) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Delete
+                    </button>
+                </form>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+    <p class="text-muted">Tips: Deleting a category does not delete the article under that category.
+        The articles under this category will be moved to the default category.</p>
+    <div class="page-footer">{{ render_pagination(pagination) }}</div>
+    {% else %}
+    <div class="tip"><h5>No Category.</h5></div>
+    {% endif %}
+{% endblock %}

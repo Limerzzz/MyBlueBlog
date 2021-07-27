@@ -1,5 +1,5 @@
 from flask import render_template, flash, redirect, url_for,Blueprint
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, current_user
 
 from blueblog.models import Admin
 from blueblog.forms import LoginForm
