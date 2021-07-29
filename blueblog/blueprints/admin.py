@@ -149,11 +149,47 @@ def delete_link(link_id):
     return render_template('admin/manage_link.html')    
 
 
-@admin_bp.route('/comment/manege')
-def manege_comment():   
-    # 如果 request对象没有相应的args的话,默认值为 1 
-    page = request.args.get('page', 1, type = int) 
-    per_page = current_app.config['BLUELOG_POST_PER_PAGE']
-    pagination = Comment.query.order_by(Post.timestamp.desc()).paginate(page, per_page = per_page)
+@admin_bp.route('/comment/manage')
+def manage_comment():   
+    # 通过使用request参数传递确定到底显示何种内容
+    # 如果没有找到相关filter字段,则默认值为 all
+    filter_rule = request.args.get('filter','all')
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['BLUELOG_COMMENT_PER_PAGE']
+    if filter_rule == 'unread':
+        filtered_comments = Comment.query.filter_by(review = False)
+    elif filter_rule == 'Admin':
+        filtered_comments = Comment.query.filter_by(from_admin = True)
+    else:
+        filtered_comments = Comment.query.all()
+    pagination = filtered_comments.order_by(Comment.timestamp.desc()).paginate(page, per_page = per_page)
     comments = pagination.items
-    return render_template('admin/manage_comment.html',pagination = pagination, comments=comments)
+    return render_template('admin/manage_comment.html', comments = comments, pagination=pagination)
+@admin_bp.route('/set-comment/<int:post_id>')
+def set_comment(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.can_comment:
+        post.can_comment = False
+        flash('Comment disabled.', 'info')
+    else:
+        post.can_comment = True
+        flash('Comment enable.', 'info')
+    db.session.commit()
+    return redirect(url_for('.show_post',post_id = post_id))
+@admin_bp.route('/comment/<int:comment_id>/approve')
+def approve_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    comment.review = True
+    db.session.commit()
+    flash('comment published.','success')
+    return redirect_back()
+@admin_bp.route('/comment/<int:comment_id>/delete', methods=['POST'])
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    comment.delete()
+    return render_template('admin/manage_comment.html')
+
+@admin_bp.before_request
+@login_required
+def login_protect():
+    pass
